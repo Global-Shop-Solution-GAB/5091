@@ -1,0 +1,74 @@
+Program.Sub.ScreenSU.Start
+Gui.Form..Create
+Gui.Form..Caption("GSS/Peachtree ID")
+Gui.Form..Size(8145,8175)
+Gui.Form..MinX(0)
+Gui.Form..MinY(0)
+Gui.Form..Position(0,0)
+Gui.Form..BackColor(-2147483633)
+Gui.Form..MousePointer(0)
+Gui.Form..Event(UnLoad,Form_UnLoad)
+Gui.Form.GsGrid.Create(GsGridControl)
+Gui.Form.GsGrid.Size(8220,7845)
+Gui.Form.GsGrid.Position(-75,-30)
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+
+F.Intrinsic.Control.CallSub(Grid)
+
+F.Intrinsic.Control.Catch
+    F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+    F.Intrinsic.UI.Msgbox(V.Local.sError)
+    F.Intrinsic.Control.CallSub(UnLoad)
+F.Intrinsic.Control.EndTry
+Program.Sub.Main.End
+
+Program.Sub.Grid.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+
+Function.ODBC.Connection!con.OpenCompanyConnection
+
+F.Data.DataTable.CreateFromSQL("Data", "con", "Select '' as Salesman_ID,  rTrim(ID) as GSS_Codes, rTrim(Name) as Name  from SALESPERSONS", TRUE)
+F.Data.Dictionary.CreateFromSQL("dict", "con", "Select rTrim(GSS_Codes) as GSS_Codes, rTrim(Salesman_ID) as Salesman_ID From GCG_5091_SalesPerson")
+F.Data.Dictionary.SetDefaultReturn("dict", "")
+F.Data.DataTable.FillFromDictionary("Data", "dict", "GSS_Codes", "Salesman_ID")
+F.Data.Dictionary.Close("dict")
+F.ODBC.Connection!con.Close
+
+Gui.Form.GsGrid.AddGridViewFromDataTable( "Grid", "Data")
+GUI.Form.GSGrid.SetColumnProperty("Grid", "Salesman_ID", "Readonly", False)
+GUI.Form.GSGrid.SetColumnProperty("Grid", "Salesman_ID", "AllowEdit", True)
+GUI.Form.GsGrid.MainView("Grid")
+GUI.Form..Show
+
+
+F.Intrinsic.Control.Catch
+    F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+    F.Intrinsic.UI.Msgbox(V.Local.sError)
+    F.Intrinsic.Control.CallSub(UnLoad)
+F.Intrinsic.Control.EndTry
+Program.Sub.Grid.End
+
+Program.Sub.Form_UnLoad.Start
+F.Intrinsic.Control.Try
+V.Local.sError.Declare
+
+Function.ODBC.Connection!con.OpenCompanyConnection
+Function.Data.DataTable.SaveToDB("Data", "con", "GCG_5091_SalesPerson", "GSS_Codes*!*Salesman_ID", 256, "GSS_Codes@!@GSS_Codes*!*Salesman_ID@!@Salesman_ID")
+F.ODBC.Connection!con.Close
+GUI.Form..Visible(False)
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.Catch
+    F.Intrinsic.String.Build("Project: {0}{1}{1}Subroutine: {2}{1}Error Occurred {3} with description {4}{1}{1}GAB Version: {5}",V.Ambient.ScriptPath,V.Ambient.Newline,V.Ambient.CurrentSubroutine,V.Ambient.ErrorNumber,V.Ambient.ErrorDescription,V.Ambient.GABVersion,V.Local.sError)
+    F.Intrinsic.UI.Msgbox(V.Local.sError)
+    F.Intrinsic.Control.End
+F.Intrinsic.Control.EndTry
+Program.Sub.Form_UnLoad.End
